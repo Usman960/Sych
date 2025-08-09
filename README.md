@@ -79,6 +79,19 @@ Fetch prediction results based on prediction id.
 
 ## Running the Project Locally with Docker
 1. Clone the repository:
-   ```json
-   git clone <your-repo-url>
-   cd <your-repo-folder>
+   ```bash
+   git clone https://github.com/Usman960/Sych.git
+   cd Sych
+2. Create a `.env` file to set RabbitMQ credentials (optional):
+   ```bash
+   RABBITMQ_DEFAULT_USER=guest
+   RABBITMQ_DEFAULT_PASS=guest
+   RABBITMQ_HOST=rabbitmq
+3. Start the services using Docker Compose:
+   ```bash
+   docker-compose up --build
+4. Access the services:
+   - Flask API: `http://localhost:8080`
+   - RabbitMQ Management UI: `http://localhost:15672`
+     (Login with credentials defined in `.env`, defaults are `guest`/`guest`)
+
