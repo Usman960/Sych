@@ -1,9 +1,8 @@
 from flask import Flask, request
 from threading import Thread
 from mock import mock_model_predict
-from queue import Queue
 import uuid
-from typing import Dict, Optional, Tuple, Any
+from typing import Dict, Optional, Any
 import json
 import os
 import pika
