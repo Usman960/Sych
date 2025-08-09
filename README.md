@@ -7,7 +7,7 @@ This project demonstrates an asynchronous prediction API using Flask and RabbitM
 ## Overview
 
 - The Flask app exposes two endpoints: one for submitting prediction requests and one for fetching async results.
-- Synchronous requests return the result only after processing the prediction results.
+- Synchronous requests return response only after processing the prediction results.
 - Asynchronous requests are placed on a RabbitMQ queue and processed by a background worker thread.
 - Results are temporarily stored in-memory and can be fetched later using a unique prediction ID.
 - RabbitMQ manages task queuing and delivery, decoupling request handling from prediction processing.
