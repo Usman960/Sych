@@ -65,3 +65,20 @@ Fetch prediction results based on prediction id.
       "prediction_id": "3a2a52a3-a2fa-4bde-b542-4fdc16a1b80d"
     }
   }
+
+---
+
+## Prerequisites
+- Docker and Docker Compose installed on your machine
+- RabbitMQ credentials set as environment variables (or defaults will be used):
+  - `RABBITMQ_DEFAULT_USER` (default: `guest`)
+  - `RABBITMQ_DEFAULT_PASS` (default: `guest`)
+  - `RABBITMQ_HOST` (default: `localhost`)
+
+---
+
+## Running the Project Locally with Docker
+1. Clone the repository:
+   ```json
+   git clone <your-repo-url>
+   cd <your-repo-folder>
