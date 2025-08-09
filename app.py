@@ -4,21 +4,11 @@ from mock import mock_model_predict
 import uuid
 from typing import Dict, Optional, Any
 import json
-import os
-import pika
+from rabbitmq import create_rabbitmq_connection
 
 app = Flask(__name__)
 
-rabbit_host = os.getenv("RABBITMQ_HOST", "localhost")
-rabbit_user = os.getenv("RABBITMQ_USER", "guest")
-rabbit_pass = os.getenv("RABBITMQ_PASS", "guest")
-
-credentials = pika.PlainCredentials(rabbit_user, rabbit_pass)
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host=rabbit_host, credentials=credentials)
-)
-channel = connection.channel()
-channel.queue_declare(queue='prediction_tasks')
+connection, channel = create_rabbitmq_connection()
 
 # queue: Queue[Tuple[str, str]] = Queue() # use a built-in queue for async request processing
 
@@ -38,12 +28,7 @@ results: Dict[str, Optional[Dict[str, str]]] = {} # value can be either the dict
 # thread.start()
 
 def rabbitmq_worker():
-    credentials = pika.PlainCredentials(rabbit_user, rabbit_pass)
-    connection = pika.BlockingConnection(
-        pika.ConnectionParameters(host=rabbit_host, credentials=credentials)
-    )
-    channel = connection.channel()
-    channel.queue_declare(queue='prediction_tasks')
+    connection, channel = create_rabbitmq_connection()
 
     def callback(ch, method, properties, body):
         task = json.loads(body)
