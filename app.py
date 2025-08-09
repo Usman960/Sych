@@ -8,37 +8,25 @@ from rabbitmq import create_rabbitmq_connection
 
 app = Flask(__name__)
 
-connection, channel = create_rabbitmq_connection()
-
-# queue: Queue[Tuple[str, str]] = Queue() # use a built-in queue for async request processing
+connection, channel = create_rabbitmq_connection() # create a connection and channel for flask (main) thread
 
 # temporarily stores prediction results
 results: Dict[str, Optional[Dict[str, str]]] = {} # value can be either the dict returned from mock_model_predict 
                                                   # or None
 
-# Background worker that consumes tasks from queue
-# def worker() -> None:
-#     while True:
-#         input, predictionId = queue.get()
-#         result = mock_model_predict(input)
-#         results[predictionId] = result # store the value of mock_model_predict against the predictionId key
-#         queue.task_done()
-
-# thread = Thread(target=worker, daemon=True) # daemon=True specifies this thread as a background thread
-# thread.start()
-
-def rabbitmq_worker():
-    connection, channel = create_rabbitmq_connection()
+# this is the background thread which will consume tasks from queue
+def rabbitmq_worker() -> None:
+    connection, channel = create_rabbitmq_connection() # create a connection and channel for worker thread
 
     def callback(ch, method, properties, body):
-        task = json.loads(body)
+        task = json.loads(body) # convert the json body back to python dictionary
         prediction_id = task['prediction_id']
         input_value = task['input']
 
         result = mock_model_predict(input_value)
-        results[prediction_id] = result
+        results[prediction_id] = result # store the return value from mock_model_predict against the prediction key
     
-    channel.basic_consume(queue='prediction_tasks', on_message_callback=callback, auto_ack=True)
+    channel.basic_consume(queue='prediction_tasks', on_message_callback=callback, auto_ack=True) # start consuming
     channel.start_consuming()
 
 # endpoint for invoking mock_model_predict synchronously/asynchronously
@@ -51,9 +39,8 @@ def predict() -> Any:
     if isAsync and isAsync.lower() == "true":
         predictionId: str = str(uuid.uuid4()) # generate a unique prediction id
         results[predictionId] = None    # create an entry in results dict with value set to null
-        #queue.put((input, predictionId)) # add the task to queue
-        message = json.dumps({"input": input, "prediction_id": predictionId})
-        channel.basic_publish(exchange='', routing_key='prediction_tasks', body=message)
+        message = json.dumps({"input": input, "prediction_id": predictionId}) # convert python dictionary to json
+        channel.basic_publish(exchange='', routing_key='prediction_tasks', body=message) # publish to queue
         return {"message": "Request received. Processing asynchronously.",
                 "prediction_id": predictionId}, 202
     else:
@@ -61,7 +48,7 @@ def predict() -> Any:
 
 # endpoint to fetch prediction result based on prediction id
 @app.route("/predict/<predictionId>", methods=['GET'])
-def getResults(predictionId) -> Any:
+def getResults(predictionId: str) -> Any:
     if predictionId in results:     # first check if the prediction id is present in results dict or not 
         result = results[predictionId]
         if result is None:  # if the prediction id is found but the value is null then the worker is processing it
@@ -75,6 +62,6 @@ def getResults(predictionId) -> Any:
         return {"error": "Prediction ID not found."}, 404
 
 if __name__ == '__main__':
-    Thread(target=rabbitmq_worker, daemon=True).start()
+    Thread(target=rabbitmq_worker, daemon=True).start() # daemon=True means this is a background thread
     app.run(host="0.0.0.0", port=8080)  # ensure the app runs on port 8080 and is accessible from all IP addresses
 
