@@ -92,6 +92,6 @@ Fetch prediction results based on prediction id.
    docker-compose up --build
 4. Access the services:
    - Flask API: `http://localhost:8080`
-   - RabbitMQ Management UI: `http://localhost:15672`
+   - RabbitMQ Management UI: `http://localhost:15672` 
      (Login with credentials defined in `.env`, defaults are `guest`/`guest`)
 
