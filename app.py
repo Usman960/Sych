@@ -26,7 +26,7 @@ thread.start()
 
 # endpoint for invoking mock_model_predict synchronously/asynchronously
 @app.route("/predict", methods=['POST'])
-def predict() -> None:
+def predict() -> Any:
     isAsync: Optional[str] = request.headers.get("Async-Mode") # extract the value of header
     input: str = request.get_json().get("input") # extract the value of the key 'input' from req body
 
@@ -42,7 +42,7 @@ def predict() -> None:
 
 # endpoint to fetch prediction result based on prediction id
 @app.route("/predict/<predictionId>", methods=['GET'])
-def getResults(predictionId) -> None:
+def getResults(predictionId) -> Any:
     if predictionId in results:     # first check if the prediction id is present in results dict or not 
         result = results[predictionId]
         if result is None:  # if the prediction id is found but the value is null then the worker is processing it
