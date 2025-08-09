@@ -1,27 +1,17 @@
-# Stage 1: Build stage
-FROM python:3.11-slim AS builder
-
-WORKDIR /app
-
-# Copy only requirements first to leverage Docker cache
-COPY requirements.txt .
-
-# Install dependencies into a separate directory (/install)
-RUN pip install --prefix=/install --no-cache-dir -r requirements.txt
-
-# Copy app source code
-COPY . .
-
-# Stage 2: Final runtime stage
+# slim is a much smaller image than python:3.11 which comes with many dev tools pre installed
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy installed python packages from builder
-COPY --from=builder /install /usr/local
+# Copy requirements
+COPY requirements.txt .
 
-# Copy app source code
-COPY --from=builder /app /app
+# --no-cache-dir flag prevents pip from keeping .whl and .tar.gz files in its local cache dir
+# further reducing the image size
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the app
+COPY . .
 
 EXPOSE 8080
 
