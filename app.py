@@ -7,7 +7,7 @@ from typing import Dict, Optional, Tuple, Any
 
 app = Flask(__name__)
 
-queue = Queue() # use a built-in queue for async request processing
+queue: Queue[Tuple[str, str]] = Queue() # use a built-in queue for async request processing
 
 # temporarily stores prediction results
 results: Dict[str, Optional[Dict[str, str]]] = {} # value can be either the dict returned from mock_model_predict 
