@@ -3,14 +3,18 @@ from threading import Thread
 from mock import mock_model_predict
 from queue import Queue
 import uuid
+from typing import Dict, Optional, Tuple, Any
 
 app = Flask(__name__)
 
 queue = Queue() # use a built-in queue for async request processing
-results = {} # temporarily stores prediction results
+
+# temporarily stores prediction results
+results: Dict[str, Optional[Dict[str, str]]] = {} # value can be either the dict returned from mock_model_predict 
+                                                  # or None
 
 # Background worker that consumes tasks from queue
-def worker():
+def worker() -> None:
     while True:
         input, predictionId = queue.get()
         result = mock_model_predict(input)
@@ -22,13 +26,13 @@ thread.start()
 
 # endpoint for invoking mock_model_predict synchronously/asynchronously
 @app.route("/predict", methods=['POST'])
-def predict():
-    isAsync = request.headers.get("Async-Mode") # extract the value of header
-    input = request.get_json().get("input") # extract the value of the key 'input' from req body
+def predict() -> None:
+    isAsync: Optional[str] = request.headers.get("Async-Mode") # extract the value of header
+    input: str = request.get_json().get("input") # extract the value of the key 'input' from req body
 
     # if asynchronous
-    if isAsync:
-        predictionId = str(uuid.uuid4()) # generate a unique prediction id
+    if isAsync and isAsync.lower() == "true":
+        predictionId: str = str(uuid.uuid4()) # generate a unique prediction id
         results[predictionId] = None    # create an entry in results dict with value set to null
         queue.put((input, predictionId)) # add the task to queue
         return {"message": "Request received. Processing asynchronously.",
@@ -38,7 +42,7 @@ def predict():
 
 # endpoint to fetch prediction result based on prediction id
 @app.route("/predict/<predictionId>", methods=['GET'])
-def getResults(predictionId):
+def getResults(predictionId) -> None:
     if predictionId in results:     # first check if the prediction id is present in results dict or not 
         result = results[predictionId]
         if result is None:  # if the prediction id is found but the value is null then the worker is processing it
